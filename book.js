@@ -1,76 +1,88 @@
-/*Create a class BookList
-Create another class called Book
-BookLists should have the following properties:
-An array of all the Books
-Number of books marked as read
-Number of books marked not read yet
-A reference to the next book to read (book object)
-A reference to the current book being read (book object)
-A reference to the last book read (book object)
- 
-Each Book should have several properties:
-Title
-Genre
-Author
-Read (true or false)
-Read date, can be blank, otherwise needs to be a JS Date() object
-Every Booklist should have a few methods:
-.add(book)
-should add a book to the books list.
-.finishCurrentBook()
-should mark the book that is currently being read as "read"
-Give it a read date of new Date(Date.now())
-Change the last book read to be the book that just got finished
-Change the current book to be the next book to be read
-Change the next book to be read property to be the first unread book you find in the list of books
-Booklists and Books might need more methods than that. Try to think of more that might be useful.*/
-
+/**
+ * Booklist
+ */
 class BookList {
+  /**
+   *
+   * @param {Book[]} books - Array of books
+   */
   constructor(books = []) {
     this.books = books;
-    this.read = [];
-    this.notRead = books;
-    this.next = "";
-    this.current = "";
-    this.last = "";
+    this.read = 0;
+    this.notRead = books.length;
+    this.current = null;
+    this.next = null;
+    for (let i = 0; i < books.length; i++) {
+      if (this.current === null) {
+        this.current = books[i];
+      } else if (this.next === null) {
+        this.next = books[i];
+      } else {
+        break;
+      }
+    }
+    this.last = null;
   }
+
+  /**add a book to the list of books
+   *
+   * @param {*} book - book to be added to the list
+   */
   add(book) {
     if (!book instanceof Book) {
-      throw new Error("not a book");
-    }
-    this.books.add(book);
-    if (book.isRead) {
-      this.read.add(book);
+      console.log("Not a book");
     } else {
-      this.notRead.add(book);
+      this.books.add(book);
+      if (book.isRead) {
+        this.read++;
+      } else {
+        this.notRead++;
+      }
     }
   }
-  startReading() {
-    if (!this.next) {
-      this.next = this.notRead[0];
-    }
-    this.current = this.next;
-    this.next = this.notRead[0];
-  }
+
+  /**finish the current book and move to the next one
+   */
   finishCurrentBook() {
-    if (!this.current) {
-      this.startReading();
+    if (this.current === null) {
+      console.log("no books left to be read");
+    } else {
+      console.log("reading " + this.current.title);
+      this.current.setReadDate(new Date(Date.now()));
+      this.current.setRead(true);
+      this.read++;
+      this.notRead--;
+      this.last = this.current;
+      this.current = this.next;
+      this.next = null;
+      if (this.notRead > 0) {
+        for (let i = 0; i < this.books.length; i++) {
+          if (this.books[i].read === false && this.books[i] !== this.current) {
+            this.next = this.books[i];
+            break;
+          }
+        }
+      }
     }
-    this.current.setReadDate(new Date());
-    this.current.setRead(true);
-    if (!this.read.includes(this.current)) {
-      console.log(this.read);
-      this.read.push(this.current);
-    }
-    if (!this.notRead.includes(this.current)) {
-      this.read.splice(this.read.indexOf(this.current), 1);
-    }
-    this.last = this.current;
-    this.current = this.next;
-    this.next = this.notRead[0];
+  }
+  toString() {
+    return `Books total: ${this.books.length},
+      read: ${this.read},
+      unread: ${this.notRead},
+      current: ${this.current},
+      next: ${this.next},
+      last: ${this.last}`;
   }
 }
 class Book {
+  /**
+   * 
+   * @param {string} title - title of the book
+   * @param {string} genre - genre of the book
+   * @param {string} author - author of the book
+   * @param {boolean} read - true if the book was read already
+   * @param {Date} readDate - last time the book was read 
+   */
   constructor(title, genre, author, read, readDate = undefined) {
     this.title = title;
     this.author = author;
@@ -87,16 +99,47 @@ class Book {
   setRead(read) {
     this.read = read;
   }
+  toString() {
+    let returnString = "";
+    returnString += this.title + ": ";
+    if (this.read) {
+      returnString += "read on " + Book.toLocalDate(this.readDate);
+    } else {
+      returnString += "not read yet";
+    }
+    return returnString;
+  }
+  static options = {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+  static toLocalDate(date) {
+    return date.toLocaleDateString("en-GB", this.options);
+  }
 }
 
 const bookList = new BookList([
-  new Book("title1", "genre", "author", false),
-  new Book("title2", "genre", "author", false),
-  new Book("title3", "genre", "author", false),
+  new Book("Book1", "genre1", "somebody", false),
+  new Book("Book2", "genre2", "nobody", false),
+  new Book("Book3", "genre3", "a person", false),
 ]);
-bookList.startReading();
-console.log(bookList);
+console.log(bookList.toString());
 bookList.finishCurrentBook();
-console.log(bookList);
+console.log(bookList.toString());
 bookList.finishCurrentBook();
-console.log(bookList);
+console.log(bookList.toString());
+bookList.finishCurrentBook();
+console.log(bookList.toString());
+bookList.finishCurrentBook();
+console.log(bookList.toString());
+
+console.log("----------------------");
+
+const bookList2 = new BookList([new Book("title1", "genre", "author", false)]);
+console.log(bookList2.toString());
+bookList2.finishCurrentBook();
+console.log(bookList2.toString());
+bookList2.finishCurrentBook();
+console.log(bookList2.toString());
